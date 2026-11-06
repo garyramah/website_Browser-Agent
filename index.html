@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Browser-Agent.com — It Doesn't Visit the Web. It Operates It.</title>
+<meta name="description" content="Browser-Agent.com is for sale. The name for the agent that drives a browser — sees the screen, moves the cursor, clicks, types — and stops where its envelope says stop.">
+<style>
+  :root{
+    --bg:#0e0f11; --panel:#17181c; --panel2:#1e2025; --line:#2b2e35; --line2:#3a3e47;
+    --ink:#e9e7e1; --muted:#9b978c; --dim:#6f6c63;
+    --blue:#6ea8ff; --blue-dim:#2c4a7a; --amber:#f5a524; --green:#4ade80; --red:#f87171;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--blue)}
+  .wrap{max-width:900px;margin:0 auto;padding:0 22px}
+
+  /* ---- browser chrome ---- */
+  .chrome{position:sticky;top:0;z-index:50;background:#202228;border-bottom:1px solid #000}
+  .chrome-in{max-width:900px;margin:0 auto;padding:10px 22px 0}
+  .chrome-top{display:flex;align-items:center;gap:14px}
+  .dots{display:flex;gap:7px;flex:none}
+  .dots span{width:12px;height:12px;border-radius:50%;display:block}
+  .dots .r{background:#ff5f57}.dots .y{background:#febc2e}.dots .g{background:#28c840}
+  .tabs{display:flex;gap:4px;overflow-x:auto;flex:1}
+  .tabs a{flex:none;text-decoration:none;color:var(--muted);font-size:13px;
+    background:#2a2d33;border:1px solid #000;border-bottom:0;border-radius:8px 8px 0 0;
+    padding:7px 14px 6px;white-space:nowrap}
+  .tabs a.on{background:var(--bg);color:var(--ink)}
+  .tabs a:hover{color:var(--ink)}
+  .addrbar{display:flex;align-items:center;gap:8px;background:var(--bg);
+    border:1px solid var(--line);border-radius:9px;margin:10px 0 12px;
+    padding:8px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:13px;color:var(--muted)}
+  .addrbar .lock{color:var(--green);flex:none}
+  .addrbar b{color:var(--ink);font-weight:600}
+  .addrbar .reload{margin-left:auto;color:var(--dim);flex:none}
+
+  header{padding:66px 0 10px}
+  .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 18px}
+  .eyebrow b{color:var(--blue);font-weight:600}
+  h1{font-size:clamp(40px,7.5vw,64px);line-height:1.04;margin:0 0 20px;font-weight:800;letter-spacing:-.015em}
+  h1 em{font-style:normal;color:var(--blue)}
+  .lede{font-size:19px;line-height:1.55;color:#c9c6bd;max-width:660px;margin:0}
+  .lede strong{color:var(--ink)}
+  .rule{border:0;border-top:1px solid var(--line);margin:46px 0}
+  section{padding:6px 0}
+  h2{font-size:29px;line-height:1.2;margin:0 0 6px;letter-spacing:-.01em}
+  .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);
+    font-weight:700;margin:0 0 10px}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:640px}
+  p{margin:0 0 16px;max-width:680px}
+  p.dim{color:var(--muted)}
+
+  .verbs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}
+  @media(max-width:720px){.verbs{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.verbs{grid-template-columns:1fr}}
+  .verb{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .verb.stop{border-color:var(--amber)}
+  .verb .v{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--blue);margin-bottom:8px}
+  .verb.stop .v{color:var(--amber)}
+  .verb h3{margin:0 0 6px;font-size:17px}
+  .verb p{margin:0;font-size:14px;color:#c9c6bd}
+
+  .quad{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:22px 0}
+  @media(max-width:720px){.quad{grid-template-columns:1fr 1fr}}
+  .q{border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center}
+  .q b{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;
+    letter-spacing:.08em;margin-bottom:4px}
+  .q span{font-size:13px;color:var(--muted)}
+  .q.allow b{color:var(--green)} .q.constrain b{color:var(--blue)}
+  .q.escalate b{color:var(--amber)} .q.deny b{color:var(--red)}
+
+  table{width:100%;border-collapse:collapse;margin:22px 0;font-size:15px}
+  th{text-align:left;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    padding:10px 12px;border-bottom:2px solid var(--ink)}
+  td{padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  td:first-child{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--blue);white-space:nowrap}
+  .bench{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}
+  .bench .b{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;font-size:14px}
+  .bench .b b{color:var(--blue)}
+  .note{font-size:13px;color:var(--muted);margin:6px 0 0}
+
+  /* ---- demo: the agent's browser ---- */
+  .demo{background:var(--panel);border:1px solid var(--line2);border-radius:16px;overflow:hidden;margin:24px 0}
+  .demo-head{padding:16px 20px 0}
+  .demo-head h3{margin:0 0 4px;font-size:19px}
+  .demo-head p{margin:0 0 14px;font-size:14px;color:var(--muted)}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px}
+  .presets button{font:inherit;font-size:13px;cursor:pointer;border-radius:999px;
+    border:1px solid var(--line2);background:transparent;color:var(--ink);padding:7px 13px}
+  .presets button:hover{border-color:var(--ink)}
+  .presets button.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .minibrowser{border-top:1px solid var(--line);background:#101114}
+  .minibrowser .mtabs{display:flex;gap:4px;padding:10px 14px 0;overflow-x:auto}
+  .minibrowser .mtabs span{flex:none;font-size:12px;color:var(--muted);background:#232529;
+    border:1px solid #000;border-bottom:0;border-radius:7px 7px 0 0;padding:6px 12px;white-space:nowrap}
+  .minibrowser .mtabs span.on{background:#1b1d21;color:var(--ink)}
+  .minibrowser .maddr{margin:0 14px;background:#1b1d21;border:1px solid var(--line);
+    border-radius:8px;padding:7px 11px;font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .minibrowser .maddr b{color:var(--ink);font-weight:600}
+  .viewport{margin:12px 14px 14px;background:#fff;color:#17130c;border-radius:10px;
+    min-height:220px;padding:18px 20px;position:relative}
+  .viewport h4{margin:0 0 4px;font-size:17px;color:#17130c}
+  .viewport .vsub{font-size:13px;color:#6f675a;margin:0 0 14px}
+  .viewport .row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;
+    border-top:1px solid #eee;font-size:14px}
+  .viewport .row:first-of-type{border-top:0}
+  .viewport .row b{font-weight:700}
+  .viewport .row .price{font-weight:700;color:#1d4ed8;white-space:nowrap}
+  .viewport .pick{background:#eef4ff;border:1px solid #bfd4ff;border-radius:8px;padding:10px 12px;
+    font-size:14px;margin-top:10px}
+  .viewport input[type=text]{width:100%;padding:9px 11px;border:1px solid #ccc;border-radius:8px;
+    font:inherit;font-size:14px;margin:6px 0}
+  .viewport .btnrow{display:flex;gap:8px;margin-top:12px}
+  .viewport .vbtn{border:0;border-radius:8px;background:#17130c;color:#fff;font:inherit;
+    font-size:14px;font-weight:700;padding:9px 16px;cursor:pointer}
+  .viewport .vbtn.ghost{background:transparent;color:#17130c;border:1px solid #999}
+  .gate{position:absolute;inset:0;background:rgba(14,15,17,.94);border-radius:10px;
+    display:none;align-items:center;justify-content:center;padding:20px}
+  .gate.show{display:flex}
+  .gate .gcard{background:#1e2025;border:1px solid var(--amber);border-radius:12px;
+    padding:20px 22px;max-width:420px;color:var(--ink)}
+  .gate .gcard .gstate{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;
+    letter-spacing:.12em;color:var(--amber);font-weight:700;margin-bottom:8px}
+  .gate .gcard h4{color:#fff;margin:0 0 6px}
+  .gate .gcard p{font-size:14px;color:#c9c6bd;margin:0 0 14px}
+  .gate .gcard button{font:inherit;font-size:14px;font-weight:700;cursor:pointer;border-radius:999px;
+    padding:9px 18px;border:0}
+  .gate .gcard .take{background:var(--amber);color:#17130c;margin-right:8px}
+  .gate .gcard .again{background:transparent;color:var(--ink);border:1px solid var(--line2)}
+  .feed{border-top:1px solid var(--line);padding:14px 20px 18px}
+  .feed .flabel{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+  .feedlog{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+    line-height:1.8;color:#c9c6bd;min-height:120px;white-space:pre-wrap;word-break:break-word}
+  .feedlog .a{color:var(--blue)} .feedlog .ok{color:var(--green);font-weight:700}
+  .feedlog .w{color:var(--amber)} .feedlog .m{color:var(--dim)}
+  .demo-foot{padding:0 20px 16px;font-size:13px;color:var(--muted)}
+  .runrow{display:flex;gap:8px;padding:0 20px 16px}
+  .runrow button{font:inherit;font-size:14px;font-weight:700;cursor:pointer;border-radius:999px;
+    padding:10px 20px;border:0}
+  .runrow .run{background:var(--blue);color:#fff}
+  .runrow .run:disabled{opacity:.45;cursor:default}
+  .runrow .rst{background:transparent;color:var(--ink);border:1px solid var(--line2)}
+
+  .namegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}
+  @media(max-width:640px){.namegrid{grid-template-columns:1fr}}
+  .namegrid .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .namegrid .big{font-size:34px;line-height:1;color:var(--blue);font-weight:800}
+  .namegrid h3{margin:10px 0 6px;font-size:16px}
+  .namegrid p{margin:0;font-size:14px;color:#c9c6bd}
+
+  .offer{background:#f3efe6;color:#17130c;border-radius:18px;padding:38px 32px;
+    margin:48px 0 8px;text-align:center}
+  .offer .kicker{color:#b45309}
+  .offer h2{color:#17130c;font-size:34px}
+  .offer p{color:#5c564a;margin:0 auto 22px;max-width:520px}
+  .offer a.btn{display:inline-block;background:#17130c;color:#fff;font-weight:700;
+    font-size:17px;text-decoration:none;border-radius:999px;padding:14px 30px}
+  .offer a.btn:hover{background:var(--blue)}
+  .offer .fine{font-size:13px;color:#8a8172;margin:18px 0 0}
+  .sources{font-size:14px;color:var(--muted)}
+  .sources li{margin-bottom:8px}
+  footer{padding:28px 0 48px;border-top:1px solid var(--line);margin-top:48px;
+    font-size:14px;color:var(--muted)}
+  footer .disc{font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- the page is a browser -->
+<div class="chrome">
+  <div class="chrome-in">
+    <div class="chrome-top">
+      <div class="dots"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+      <nav class="tabs">
+        <a href="#agent" class="on">browser-agent.com</a>
+        <a href="#record">the record</a>
+        <a href="#drive">drive it</a>
+        <a href="#offer">make an offer</a>
+      </nav>
+    </div>
+    <div class="addrbar"><span class="lock">🔒</span><b>https://</b>browser-agent.com<span class="reload">↻</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header id="agent">
+    <p class="eyebrow"><b>Browser-Agent.com</b> &nbsp;·&nbsp; Domain for sale</p>
+    <h1>It doesn't visit the web.<br>It <em>operates</em> it.</h1>
+    <p class="lede">A browser agent doesn't read <em>about</em> the web. It drives it — sees the
+    screen, moves the cursor, clicks, types, submits. The question was never whether it
+    could. <strong>The question is what it's allowed to do.</strong></p>
+  </header>
+
+  <hr class="rule">
+
+  <section>
+    <p class="kicker">Three verbs — and a fourth</p>
+    <h2>See. Decide. Act. Stop.</h2>
+    <p class="sub">Every browser agent runs the same loop. The fourth verb is the one that makes it
+    safe to own.</p>
+    <div class="verbs">
+      <div class="verb"><div class="v">01 · See</div><h3>Screenshot in</h3><p>The agent looks at the page the way you do — pixels, not APIs. No integration required; if a human can use the site, so can it.</p></div>
+      <div class="verb"><div class="v">02 · Decide</div><h3>Model chooses</h3><p>Where to click, what to type, when to scroll. One decision per screenshot, hundreds of steps per task.</p></div>
+      <div class="verb"><div class="v">03 · Act</div><h3>Cursor out</h3><p>Click, type, scroll, submit. The same affordances a person has — which is the power, and the problem.</p></div>
+      <div class="verb stop"><div class="v">04 · Stop</div><h3>Envelope holds</h3><p>Looking is free. Committing is not. Payment, submission, sending, deleting — those cross the envelope, and the envelope decides.</p></div>
+    </div>
+    <p>That fourth verb is native to this name. A browser agent's envelope is not an add-on;
+    the browser <em>is</em> the boundary it operates inside. Read anything. Change only what
+    you're bound to change.</p>
+    <div class="quad">
+      <div class="q allow"><b>ALLOW</b><span>Browse, read, compare — free passage.</span></div>
+      <div class="q constrain"><b>CONSTRAIN</b><span>Act within limits: one booking, under a budget, stated window.</span></div>
+      <div class="q escalate"><b>ESCALATE</b><span>Payment or submission goes to the human.</span></div>
+      <div class="q deny"><b>DENY</b><span>Outside the bound, the click never happens.</span></div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section id="record">
+    <p class="kicker">The record</p>
+    <h2>Every frontier lab built one. Then they all folded.</h2>
+    <p class="sub">The browser agent went from research preview to infrastructure in eighteen months —
+    and the standalone products didn't survive the trip.</p>
+    <table>
+      <tr><th>When</th><th>What happened</th></tr>
+      <tr><td>Oct 2024</td><td><strong>Anthropic ships Computer Use</strong> in beta with Claude 3.5 Sonnet — screenshot in, cursor actions out. Partners include Asana, Canva, DoorDash, and Replit.</td></tr>
+      <tr><td>Dec 2024</td><td><strong>Google unveils Project Mariner</strong>, a Gemini 2.0 Chrome-extension prototype for trusted testers. It scores 83.5% on the WebVoyager browsing benchmark — state of the art at launch, per Google.</td></tr>
+      <tr><td>Jan 2025</td><td><strong>OpenAI launches Operator</strong>, a research preview for ChatGPT Pro ($200/month, US only), powered by its Computer-Using Agent model. OpenAI reports 87% on WebVoyager, 58.1% on WebArena, 38.1% on OSWorld.</td></tr>
+      <tr><td>Mar 2025</td><td><strong>Browser Use raises a $17M seed</strong> led by Felicis, with Y Combinator and Paul Graham — the open-source library that turns any model into a browser agent.</td></tr>
+      <tr><td>Jul–Aug 2025</td><td><strong>Operator folds into ChatGPT Agent</strong> (July 17); the standalone product is retired August 31.</td></tr>
+      <tr><td>May 2026</td><td><strong>Mariner shuts down</strong> (May 4). Its technology moves into other Google products — Gemini Agent, AI Mode, computer use in the Gemini API.</td></tr>
+    </table>
+    <p>The honest turn: the products folded, the capability didn't. What survives is the layer —
+    open-source frameworks, hosted browser infrastructure, computer-use APIs — and the name of
+    the layer is the category term itself.</p>
+    <div class="bench">
+      <div class="b"><b>89.1%</b> — Browser Use, WebVoyager (open-source best, third-party)</div>
+      <div class="b"><b>87%</b> — OpenAI CUA, WebVoyager (OpenAI-reported)</div>
+      <div class="b"><b>83.5%</b> — Project Mariner, WebVoyager (Google-reported)</div>
+      <div class="b"><b>100K+</b> — Browser Use GitHub stars by 2026</div>
+    </div>
+    <p class="note">Benchmark figures are the labs' own reported numbers, except where noted; treat them
+    as directional, not a buying criterion. The point of the record is the shape of it: three
+    labs, three launches, three absorptions — and an open layer that kept growing.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section id="drive">
+    <p class="kicker">Drive it</p>
+    <h2>Give the agent a task. Watch where it stops.</h2>
+    <p class="sub">A labelled simulation. The agent navigates, reads, and compares — and at the commit
+    step, the envelope holds the action for you. The pages are mockups with illustrative
+    data, not live sites.</p>
+
+    <div class="demo">
+      <div class="demo-head">
+        <h3>The agent's browser — simulation</h3>
+        <p>Pick a task. The agent drives; you watch the tabs, the address bar, and the moment it hands the wheel back.</p>
+      </div>
+      <div class="presets">
+        <button data-task="a" class="active">Find the cheapest noise-canceling headphones under $300</button>
+        <button data-task="b">Book a table for two on Friday at 7pm</button>
+        <button data-task="c">Compare the top two laptops for battery life</button>
+      </div>
+      <div class="runrow">
+        <button class="run" id="runBtn">▶&nbsp; Run the agent</button>
+        <button class="rst" id="resetBtn">Reset</button>
+      </div>
+      <div class="minibrowser">
+        <div class="mtabs" id="mtabs"><span class="on">New Tab</span></div>
+        <div class="maddr" id="maddr"><b>https://</b>new-tab</div>
+        <div class="viewport" id="viewport">
+          <h4>New Tab</h4>
+          <p class="vsub">The agent is waiting for a task.</p>
+          <div class="gate" id="gate">
+            <div class="gcard">
+              <div class="gstate" id="gateState">ESCALATE — ENVELOPE</div>
+              <h4 id="gateTitle">This step needs you.</h4>
+              <p id="gateBody"></p>
+              <button class="take" id="takeBtn">Take over</button>
+              <button class="again" id="againBtn">Run again</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="feed">
+        <div class="flabel">Agent feed</div>
+        <div class="feedlog" id="feedlog"><span class="m">Ready. Pick a task and press Run — the agent will navigate,
+read, compare, and stop at the commit step.</span></div>
+      </div>
+      <p class="demo-foot">Simulation. Pages are mockups; prices and availability are illustrative, not live data. The envelope step is the point.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <p class="kicker">The name</p>
+    <h2>The category term, in .com.</h2>
+    <p class="sub">The field already calls these things browser agents. This is the name of the field.</p>
+    <div class="namegrid">
+      <div class="card"><div class="big">.com</div><h3>The extension that matters</h3><p>For a category term, .com is the default buyers type first — and the one the labs' own products never got to own.</p></div>
+      <div class="card"><div class="big">2 words</div><h3>The whole category</h3><p>Not a brand inventing a niche. "Browser agent" is the phrase the papers, the benchmarks, and the funding announcements already use.</p></div>
+      <div class="card"><div class="big">13+1</div><h3>Thirteen letters, one hyphen</h3><p>The hyphen is the honest part — it is why this name is priced as a category door rather than a brand. The words themselves are the value.</p></div>
+    </div>
+    <p>WebNative is the stance — the agent that belongs in the web. <strong>Browser-Agent is the
+    job</strong> — the agent that drives the browser. One names the philosophy, the other names
+    the work. A buyer building the layer needs the second one.</p>
+  </section>
+
+  <div class="offer" id="offer">
+    <p class="kicker">Own the name</p>
+    <h2>Browser-Agent.com is for sale.</h2>
+    <p>The labs built the capability and folded the products. What remains is the layer — and
+    the layer needs a name. This is the category term, in .com.</p>
+    <a class="btn" href="https://www.atom.com/name/Browser-Agent.com">Make an offer on Atom →</a>
+    <p class="fine">Listed on Atom. Transfer handled by Atom after purchase.</p>
+  </div>
+
+  <hr class="rule">
+
+  <section>
+    <p class="kicker">Sources &amp; attribution</p>
+    <h2>What this page stands on.</h2>
+    <p>Every factual claim above traces to one of these. Benchmark figures are the reporting
+    lab's own, unless stated otherwise.</p>
+    <ul class="sources">
+      <li>Anthropic, "Introducing computer use" (October 2024) — Computer Use beta with Claude 3.5 Sonnet; screenshot-driven actions; launch partners. Via the three-way comparison: <a href="https://datarekha.com/blog/operator-vs-claude-computer-use-vs-mariner/">datarekha.com</a></li>
+      <li>OpenAI, "Introducing Operator" (January 23, 2025) — research preview, ChatGPT Pro, CUA model; folded into ChatGPT Agent July 17, 2025; standalone retired August 31, 2025. <a href="https://browserbash.com/blog/openai-operator-computer-use-explained">browserbash.com</a></li>
+      <li>Google DeepMind, Project Mariner (December 11, 2024) — Gemini 2.0 prototype; 83.5% WebVoyager; May 2025 cloud update; discontinued May 4, 2026. <a href="https://en.wikipedia.org/wiki/Project_Mariner">en.wikipedia.org</a></li>
+      <li>Browser Use — $17M seed, March 2025, led by Felicis (Y Combinator W25); open-source library; 100K+ GitHub stars. <a href="https://www.contentedge.com/blog/browser-use-web-for-agents">contentedge.com</a> · <a href="https://asceroai.com/news/browser-use-stagehand-agent-frontier-2026">asceroai.com</a></li>
+    </ul>
+    <p class="note">This is a concept page for the domain name, not a product, company, or offer of
+    services. No price is stated; offers are made through the Atom listing.</p>
+  </section>
+
+  <footer>
+    <p>This domain is for sale — <a href="https://www.atom.com/name/Browser-Agent.com">Make an offer on Atom</a></p>
+    <p class="disc">Browser-Agent.com — registered July 21, 2025 · expires July 21, 2027. Concept page built November 2026.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var TASKS = {
+    a: {
+      label: "Find the cheapest noise-canceling headphones under $300",
+      steps: [
+        {tab:"Search — headphones", url:"search.example/query=noise-canceling+headphones",
+         view:'<h4>Search results</h4><p class="vsub">3 stores carry noise-canceling headphones under $300.</p><div class="row"><span>Store A — QuietPro X2</span><span class="price">$279</span></div><div class="row"><span>Store B — QuietPro X2</span><span class="price">$249</span></div><div class="row"><span>Store C — SilenceOne</span><span class="price">$299</span></div>',
+         feed:'navigate → search "noise-canceling headphones under $300"'},
+        {tab:"Store B — QuietPro X2", url:"store-b.example/product/quietpro-x2",
+         view:'<h4>QuietPro X2 — Store B</h4><p class="vsub">Noise-canceling · 40h battery · in stock</p><div class="row"><span>Price</span><span class="price">$249</span></div><div class="row"><span>Shipping</span><span>Free, 2-day</span></div><div class="row"><span>Returns</span><span>30 days</span></div><div class="pick">Lowest price found so far: <b>$249 at Store B</b>. Checking one more store before deciding.</div>',
+         feed:'click → Store B listing · extract price $249, shipping, returns'},
+        {tab:"Store A — QuietPro X2", url:"store-a.example/product/quietpro-x2",
+         view:'<h4>QuietPro X2 — Store A</h4><p class="vsub">Noise-canceling · 40h battery · in stock</p><div class="row"><span>Price</span><span class="price">$279</span></div><div class="row"><span>Shipping</span><span>$12, 3-day</span></div><div class="pick">Store A is $30 more with paid shipping. <b>Store B wins.</b></div>',
+         feed:'click → Store A listing · extract price $279 · compare: Store B is $30 cheaper'},
+        {tab:"Store B — Checkout", url:"store-b.example/checkout",
+         view:'<h4>Checkout — QuietPro X2</h4><p class="vsub">Store B · $249 + free shipping</p><input type="text" value="Card on file •••• 4242" readonly><input type="text" value="Ship to: home address" readonly><div class="btnrow"><button class="vbtn" type="button">Place order — $249</button><button class="vbtn ghost" type="button">Cancel</button></div>',
+         feed:'navigate → checkout · cart total $249 · payment method on file'}
+      ],
+      gate: {
+        title: "This step needs you.",
+        body: "The agent found the cheapest pair ($249 at Store B, free shipping) and filled the checkout. Placing the order is a commit — money moves, and it can't be un-clicked. The envelope escalates it to you."
+      }
+    },
+    b: {
+      label: "Book a table for two on Friday at 7pm",
+      steps: [
+        {tab:"Search — restaurants", url:"search.example/query=table+for+two+friday+7pm",
+         view:'<h4>Search results</h4><p class="vsub">3 restaurants have Friday 7pm availability for two.</p><div class="row"><span>Osteria Verde — Italian</span><span>7:00 PM ✓</span></div><div class="row"><span>Bar Noroeste — Spanish</span><span>7:15 PM ✓</span></div><div class="row"><span>The Copper Pot — American</span><span>6:45 PM ✓</span></div>',
+         feed:'navigate → search "table for two Friday 7pm"'},
+        {tab:"Osteria Verde — Reserve", url:"osteria-verde.example/reserve",
+         view:'<h4>Osteria Verde — Reserve a table</h4><p class="vsub">Friday · party of 2 · 7:00 PM available</p><div class="row"><span>Date</span><span><b>Friday</b></span></div><div class="row"><span>Time</span><span><b>7:00 PM</b></span></div><div class="row"><span>Party</span><span><b>2 guests</b></span></div><div class="pick">Exact match: Friday, 7:00 PM, two guests. <b>Osteria Verde it is.</b></div>',
+         feed:'click → Osteria Verde · extract availability: Friday 7:00 PM, party of 2 ✓'},
+        {tab:"Osteria Verde — Confirm", url:"osteria-verde.example/reserve/confirm",
+         view:'<h4>Confirm reservation</h4><p class="vsub">Osteria Verde · Friday 7:00 PM · 2 guests</p><input type="text" value="Name on reservation" readonly><input type="text" value="Phone for confirmation text" readonly><div class="btnrow"><button class="vbtn" type="button">Confirm reservation</button><button class="vbtn ghost" type="button">Cancel</button></div>',
+         feed:'navigate → confirmation form · reservation details filled'}
+      ],
+      gate: {
+        title: "This step needs you.",
+        body: "The table is found — Osteria Verde, Friday 7:00 PM, two guests. Confirming books it under your name and sends a confirmation text. A commitment to a real place, on a real evening: the envelope escalates it to you."
+      }
+    },
+    c: {
+      label: "Compare the top two laptops for battery life",
+      steps: [
+        {tab:"Search — laptops", url:"search.example/query=best+laptop+battery+life+2026",
+         view:'<h4>Search results</h4><p class="vsub">Two laptops lead every battery-life roundup.</p><div class="row"><span>FeatherBook Air 14</span><span><b>22 hours</b> claimed</span></div><div class="row"><span>Workhorse Pro 16</span><span><b>18 hours</b> claimed</span></div>',
+         feed:'navigate → search "best laptop battery life 2026"'},
+        {tab:"FeatherBook Air 14 — Specs", url:"featherbook.example/air-14/specs",
+         view:'<h4>FeatherBook Air 14</h4><p class="vsub">14-inch · 2.6 lbs</p><div class="row"><span>Battery (manufacturer)</span><span><b>22 hours</b></span></div><div class="row"><span>Battery (independent test)</span><span><b>19.5 hours</b></span></div><div class="row"><span>Weight</span><span>2.6 lbs</span></div>',
+         feed:'click → FeatherBook specs · extract: 22h claimed, 19.5h tested'},
+        {tab:"Workhorse Pro 16 — Specs", url:"workhorse.example/pro-16/specs",
+         view:'<h4>Workhorse Pro 16</h4><p class="vsub">16-inch · 4.1 lbs</p><div class="row"><span>Battery (manufacturer)</span><span><b>18 hours</b></span></div><div class="row"><span>Battery (independent test)</span><span><b>17 hours</b></span></div><div class="row"><span>Weight</span><span>4.1 lbs</span></div><div class="pick"><b>Verdict:</b> FeatherBook Air wins on battery (19.5h tested vs 17h) and on weight. Workhorse wins on screen and ports.</div>',
+         feed:'click → Workhorse specs · extract: 18h claimed, 17h tested · compare complete'}
+      ],
+      gate: {
+        title: "The research is done. The decision is yours.",
+        body: "FeatherBook Air wins on battery life and weight; Workhorse wins on screen and ports. Comparing is the agent's job. Choosing which trade-off to live with is yours — the envelope doesn't decide your preferences for you."
+      }
+    }
+  };
+
+  var mtabs = document.getElementById("mtabs");
+  var maddr = document.getElementById("maddr");
+  var viewport = document.getElementById("viewport");
+  var feedlog = document.getElementById("feedlog");
+  var gate = document.getElementById("gate");
+  var gateTitle = document.getElementById("gateTitle");
+  var gateBody = document.getElementById("gateBody");
+  var runBtn = document.getElementById("runBtn");
+  var resetBtn = document.getElementById("resetBtn");
+  var takeBtn = document.getElementById("takeBtn");
+  var againBtn = document.getElementById("againBtn");
+  var presetBtns = Array.prototype.slice.call(document.querySelectorAll(".presets button"));
+  var selected = "a";
+  var running = false;
+
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function feed(html){ feedlog.innerHTML += html + "\n"; feedlog.scrollTop = feedlog.scrollHeight; }
+
+  function resetAll(){
+    mtabs.innerHTML = '<span class="on">New Tab</span>';
+    maddr.innerHTML = "<b>https://</b>new-tab";
+    viewport.innerHTML = '<h4>New Tab</h4><p class="vsub">The agent is waiting for a task.</p>' + gate.outerHTML;
+    gate = document.getElementById("gate");
+    gateTitle = document.getElementById("gateTitle");
+    gateBody = document.getElementById("gateBody");
+    takeBtn = document.getElementById("takeBtn");
+    againBtn = document.getElementById("againBtn");
+    wireGate();
+    feedlog.innerHTML = '<span class="m">Ready. Pick a task and press Run — the agent will navigate,\nread, compare, and stop at the commit step.</span>';
+  }
+
+  function wireGate(){
+    takeBtn.addEventListener("click", function(){
+      gate.classList.remove("show");
+      feed('<span class="ok">✓ you took over — the agent stepped back, the decision is yours.</span>');
+      feed('<span class="m">That is the envelope: the agent can find anything. Only you can commit.</span>');
+    });
+    againBtn.addEventListener("click", function(){
+      gate.classList.remove("show");
+      resetAll();
+    });
+  }
+  wireGate();
+
+  presetBtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      if (running) return;
+      presetBtns.forEach(function(x){ x.classList.remove("active"); });
+      b.classList.add("active");
+      selected = b.getAttribute("data-run");
+      resetAll();
+    });
+  });
+  resetBtn.addEventListener("click", function(){ if (!running) resetAll(); });
+
+  runBtn.addEventListener("click", async function(){
+    if (running) return;
+    running = true;
+    runBtn.disabled = true;
+    var task = TASKS[selected];
+    feedlog.innerHTML = "";
+    feed('<span class="m">── task ────────────────────────────────────</span>');
+    feed('<span class="a">Task: ' + esc(task.label) + '</span>');
+    await sleep(500);
+
+    var seenTabs = [];
+    for (var i = 0; i < task.steps.length; i++){
+      var st = task.steps[i];
+      if (seenTabs.indexOf(st.tab) === -1){
+        seenTabs.push(st.tab);
+        mtabs.innerHTML = seenTabs.map(function(t, idx){
+          return '<span class="' + (idx === seenTabs.length - 1 ? "on" : "") + '">' + esc(t) + "</span>";
+        }).join("");
+      } else {
+        mtabs.innerHTML = seenTabs.map(function(t){
+          return '<span class="' + (t === st.tab ? "on" : "") + '">' + esc(t) + "</span>";
+        }).join("");
+      }
+      maddr.innerHTML = "<b>https://</b>" + esc(st.url);
+      viewport.innerHTML = st.view + gate.outerHTML;
+      gate = document.getElementById("gate");
+      gateTitle = document.getElementById("gateTitle");
+      gateBody = document.getElementById("gateBody");
+      takeBtn = document.getElementById("takeBtn");
+      againBtn = document.getElementById("againBtn");
+      wireGate();
+      feed('<span class="a">→ ' + esc(st.feed) + '</span>');
+      await sleep(1100);
+    }
+
+    await sleep(400);
+    gateTitle.textContent = task.gate.title;
+    gateBody.textContent = task.gate.body;
+    gate.classList.add("show");
+    feed('<span class="w">▲ ENVELOPE — ESCALATE: commit step held for the human.</span>');
+    feed('<span class="m">The agent did the finding. The committing is yours.</span>');
+    running = false;
+    runBtn.disabled = false;
+  });
+})();
+</script>
+</body>
+</html>
